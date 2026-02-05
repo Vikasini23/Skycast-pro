@@ -3,177 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkyCast Pro | Auto-Detect Location</title>
+    <title>SkyCast Ultra | High Performance</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #ffffff;
             --accent: #00f2fe;
-            --bg: #080c14;
-            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-bg: rgba(255, 255, 255, 0.06);
+            --blur: blur(15px);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
 
         body {
-            background-color: var(--bg);
-            background-image: radial-gradient(circle at 10% 20%, rgba(0, 242, 254, 0.1) 0%, transparent 40%);
+            background: #0f172a;
             color: var(--primary);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            padding: 20px;
+            transition: background 0.5s ease;
         }
 
         .dashboard {
-            background: var(--card-bg);
-            backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 40px;
             width: 100%;
-            max-width: 440px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            max-width: 420px;
+            animation: fadeIn 0.6s ease-out;
         }
 
-        .search-row {
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Sleek Search */
+        .search-group {
             display: flex;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--card-bg);
+            backdrop-filter: var(--blur);
             border-radius: 20px;
-            padding: 6px;
-            margin-bottom: 20px;
+            padding: 8px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            padding: 12px;
-            color: white;
-            outline: none;
+            flex: 1; background: transparent; border: none; padding: 10px 15px;
+            color: white; outline: none; font-size: 1rem;
         }
 
         button {
-            background: var(--accent);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 15px;
-            font-weight: 800;
-            cursor: pointer;
+            background: var(--accent); border: none; padding: 10px 20px;
+            border-radius: 14px; font-weight: 800; cursor: pointer;
+            transition: 0.2s;
         }
 
-        #weatherBox { display: none; }
-        .temp-main { font-size: 6rem; font-weight: 800; margin: 10px 0; letter-spacing: -4px; }
-        .status-text { color: var(--accent); font-weight: 600; margin-bottom: 20px; }
+        button:active { transform: scale(0.95); }
+
+        /* History Chips */
+        .history { display: flex; gap: 8px; margin-bottom: 25px; overflow-x: auto; scrollbar-width: none; }
+        .chip { 
+            background: rgba(255,255,255,0.05); padding: 6px 14px; border-radius: 100px; 
+            font-size: 0.75rem; cursor: pointer; border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* Hero Weather Card */
+        .hero-card {
+            background: var(--card-bg);
+            backdrop-filter: var(--blur);
+            border-radius: 30px;
+            padding: 30px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .temp-main { font-size: 5rem; font-weight: 800; margin: 10px 0; letter-spacing: -2px; }
         
-        .loader {
-            width: 30px;
-            height: 30px;
-            border: 3px solid rgba(255,255,255,0.1);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 1s infinite linear;
-            margin: 20px auto;
+        /* Stats Grid */
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 12px; 
+            margin-bottom: 20px;
         }
 
+        .stat-item {
+            background: var(--card-bg);
+            backdrop-filter: var(--blur);
+            padding: 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .stat-item span { display: block; font-size: 0.65rem; opacity: 0.5; text-transform: uppercase; margin-bottom: 4px; }
+        .stat-item b { font-size: 1rem; }
+
+        /* Forecast Grid */
+        .forecast-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .f-item {
+            background: var(--card-bg);
+            backdrop-filter: var(--blur);
+            padding: 15px 10px;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .loader { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 50px auto; display: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .error { color: #ff4d4d; font-size: 0.9rem; margin-top: 10px; display: none; }
+
+        #weatherData { display: none; }
     </style>
 </head>
 <body>
 
 <div class="dashboard">
-    <div class="search-row">
-        <input type="text" id="cityInp" placeholder="Search city manually...">
+    <div class="search-group">
+        <input type="text" id="cityInp" placeholder="Enter city...">
         <button id="searchBtn">GO</button>
     </div>
+    <div class="history" id="history"></div>
 
     <div id="loader" class="loader"></div>
-    <div id="error" class="error"></div>
 
-    <div id="weatherBox">
-        <h2 id="locName">Detecting...</h2>
-        <img id="wIcon" src="" alt="" width="100">
-        <div class="temp-main"><span id="temp">--</span>°</div>
-        <p class="status-text" id="condition">---</p>
-        
-        <div style="display: flex; justify-content: space-around; opacity: 0.7; font-size: 0.9rem;">
-            <div>Humidity: <b id="humid">0%</b></div>
-            <div>Wind: <b id="wind">0 km/h</b></div>
+    <div id="weatherData">
+        <div class="hero-card">
+            <h2 id="cityName" style="font-size: 1.4rem;">---</h2>
+            <img id="wIcon" src="" alt="" style="width: 100px; margin: -10px 0;">
+            <div class="temp-main"><span id="tempNum">--</span>°</div>
+            <p id="condition" style="color: var(--accent); font-weight: 600; font-size: 0.9rem;">---</p>
         </div>
+
+        <div class="stats-grid">
+            <div class="stat-item"><span>Humidity</span><b id="humid">--</b></div>
+            <div class="stat-item"><span>Wind</span><b id="wind">--</b></div>
+            <div class="stat-item"><span>AQI</span><b id="aqi">--</b></div>
+            <div class="stat-item"><span>UV Index</span><b id="uv">--</b></div>
+        </div>
+
+        <div class="forecast-grid" id="forecast"></div>
     </div>
 </div>
 
 <script>
     const API_KEY = '7db3fd7b3c1b4f68b1362200260502';
 
-    // 1. Core Fetch Function
-    async function fetchWeather(query) {
-        showLoader(true);
-        try {
-            const res = await fetch(`https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${query}&aqi=no`);
-            if (!res.ok) throw new Error("Location not found");
-            const data = await res.json();
-            updateUI(data);
-        } catch (err) {
-            showError(err.message);
-        } finally {
-            showLoader(false);
-        }
-    }
-
-    // 2. Browser Geolocation Logic
-    function initAutoLocation() {
+    window.onload = () => {
+        updateHistoryUI();
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const latLong = `${position.coords.latitude},${position.coords.longitude}`;
-                    fetchWeather(latLong);
-                },
-                (err) => {
-                    showError("Location access denied. Please search manually.");
-                    showLoader(false);
-                }
+                p => fetchWeather(`${p.coords.latitude},${p.coords.longitude}`),
+                () => { document.getElementById('weatherData').style.display = 'none'; }
             );
-        } else {
-            showError("Geolocation not supported by this browser.");
-            showLoader(false);
+        }
+    };
+    // Allow searching by pressing the "Enter" key
+document.getElementById('cityInp').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        const v = document.getElementById('cityInp').value;
+        if(v) fetchWeather(v);
+    }
+});
+
+    async function fetchWeather(q) {
+        setLoading(true);
+        try {
+            const res = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${q}&days=3&aqi=yes`);
+            const data = await res.json();
+            if (data.error) throw new Error(data.error.message);
+            render(data);
+            saveHistory(data.location.name);
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            setLoading(false);
         }
     }
 
-    function updateUI(data) {
-        document.getElementById('locName').innerText = data.location.name;
-        document.getElementById('temp').innerText = Math.round(data.current.temp_c);
+    function render(data) {
+        document.getElementById('cityName').innerText = data.location.name;
+        document.getElementById('tempNum').innerText = Math.round(data.current.temp_c);
         document.getElementById('condition').innerText = data.current.condition.text;
+        document.getElementById('wIcon').src = 'https:' + data.current.condition.icon;
         document.getElementById('humid').innerText = data.current.humidity + '%';
         document.getElementById('wind').innerText = data.current.wind_kph + ' km/h';
-        document.getElementById('wIcon').src = 'https:' + data.current.condition.icon;
-        document.getElementById('weatherBox').style.display = 'block';
+        document.getElementById('uv').innerText = data.current.uv;
+        
+        const aqiVal = data.current.air_quality['us-epa-index'];
+        const aqiText = ["Good", "Moderate", "Unhealthy", "Unhealthy", "Very Unhealthy", "Hazardous"];
+        document.getElementById('aqi').innerText = aqiText[aqiVal - 1] || "N/A";
+
+        // Night Mode Background
+        document.body.style.background = data.current.is_day ? "#075985" : "#0f172a";
+
+        // Forecast
+        const fDiv = document.getElementById('forecast');
+        fDiv.innerHTML = data.forecast.forecastday.map(day => `
+            <div class="f-item">
+                <p style="font-size: 0.7rem; opacity: 0.6;">${new Date(day.date).toLocaleDateString('en',{weekday:'short'})}</p>
+                <img src="https:${day.day.condition.icon}" style="width: 40px;">
+                <p><b>${Math.round(day.day.maxtemp_c)}°</b></p>
+            </div>
+        `).join('');
+
+        document.getElementById('weatherData').style.display = 'block';
     }
 
-    function showLoader(show) {
-        document.getElementById('loader').style.display = show ? 'block' : 'none';
-        if(show) document.getElementById('weatherBox').style.display = 'none';
+    function setLoading(isLoading) {
+        document.getElementById('loader').style.display = isLoading ? 'block' : 'none';
+        if (isLoading) document.getElementById('weatherData').style.display = 'none';
     }
 
-    function showError(msg) {
-        const errDiv = document.getElementById('error');
-        errDiv.innerText = msg;
-        errDiv.style.display = 'block';
-        document.getElementById('weatherBox').style.display = 'none';
+    function saveHistory(city) {
+        let h = JSON.parse(localStorage.getItem('wh_v2') || '[]');
+        if(!h.includes(city)) {
+            h.unshift(city);
+            localStorage.setItem('wh_v2', JSON.stringify(h.slice(0, 3)));
+            updateHistoryUI();
+        }
     }
 
-    // Event Listeners
+    function updateHistoryUI() {
+        const h = JSON.parse(localStorage.getItem('wh_v2') || '[]');
+        document.getElementById('history').innerHTML = h.map(c => `<span class="chip" onclick="fetchWeather('${c}')">${c}</span>`).join('');
+    }
+
     document.getElementById('searchBtn').onclick = () => {
-        const val = document.getElementById('cityInp').value;
-        if(val) fetchWeather(val);
+        const v = document.getElementById('cityInp').value;
+        if(v) fetchWeather(v);
     };
-
-    // Run auto-detect on page load
-    window.onload = initAutoLocation;
 </script>
 
 </body>
-
 </html>
